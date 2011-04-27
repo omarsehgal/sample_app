@@ -26,20 +26,21 @@ class User < ActiveRecord::Base
   	validates :password, :presence     => true,
                        :confirmation => true,
                        :length       => { :within => 6..40 }
-                       
+
+	# this is called right before a new user is saved in the db                       
     before_save :encrypt_password
+
+  	def self.authenticate(email, submitted_password)
+    	user = find_by_email(email)
+    	return nil  if user.nil?
+    	return user if user.has_password?(submitted_password)
+  	end
     
     # Return true if the user's password matches the submitted password.
   	def has_password?(submitted_password)
     	encrypted_password == encrypt(submitted_password)
   	end
   	
-  	def self.authenticate(email, submitted_password)
-    	user = find_by_email(email)
-    	return nil  if user.nil?
-    	return user if user.has_password?(submitted_password)
-  	end
-
   	def self.authenticate_with_salt(id, cookie_salt)
     	user = find_by_id(id)
     	(user && user.salt == cookie_salt) ? user : nil
